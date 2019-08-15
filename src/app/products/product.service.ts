@@ -38,7 +38,9 @@ export class ProductService {
 
   constructor(private http: HttpClient,
               private productCategoryService: ProductCategoryService,
-              private supplierService: SupplierService) { }
+              private supplierService: SupplierService) {
+                console.log("hello", productCategoryService.productCategories$)
+               }
 
   private fakeProduct() {
     return {
@@ -70,15 +72,3 @@ export class ProductService {
   }
 
 }
-
-
-
-// map(products => 
-//   products.map(
-//     product => ({
-//       ...product,
-//       price: product.price * 1.5,
-//       searchKey : [product.productName]
-//     }) as Product
-//   )
-// ),
