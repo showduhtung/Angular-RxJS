@@ -11,13 +11,13 @@
               *ngFor='let product of products'
               [ngClass]="{'active': product?.id === selectedProductId}"
               (click)='onSelected(product.id)'>
-        {{ product.productName }} ({{ product.categoryId }})
+        {{ product.productName }} ({{ product.category }})
       </button>
     </div>
   </div>
 </div>
 
 <div class="alert alert-danger"
-     *ngIf="errorMessage">
+     *ngIf="errorMessage$ | async as errorMessage">
   {{errorMessage}}
 </div>

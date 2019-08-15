@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 
-import { Observable, EMPTY } from 'rxjs';
+import { Observable, EMPTY, Subject, combineLatest, BehaviorSubject } from 'rxjs';
 
 import { Product } from './product';
 import { ProductService } from './product.service';
@@ -14,13 +14,22 @@ import { ProductCategoryService } from '../product-categories/product-category.s
 })
 export class ProductListComponent {
   pageTitle = 'Product List';
-  errorMessage = '';
-  selectedCategoryId;
+  private errorMessageSubject = new Subject<string>();
+  errorMessage$ = this.errorMessageSubject.asObservable()
+  
+  private categorySelectedSubject = new BehaviorSubject<number>(0)
+  categorySelectedAction$ = this.categorySelectedSubject.asObservable()
 
-  products$ = this.productService.productsWithCategory$
+  products$ = combineLatest([ this.productService.productsWithAdd$,
+    this.categorySelectedAction$])
     .pipe(
+      map(([products, selectedCategoryId]) =>
+        products.filter(product =>
+            selectedCategoryId ? product.categoryId === selectedCategoryId : true
+          )
+      ),
       catchError(err => {
-        this.errorMessage = err;
+        this.errorMessageSubject.next(err)
         return EMPTY;
       })
     )
@@ -28,29 +37,20 @@ export class ProductListComponent {
   categories$ = this.productCategoryService.productCategories$
      .pipe(
       catchError(err => {
-        this.errorMessage = err;
+        this.errorMessageSubject.next(err)
         return EMPTY;
       })
     ) 
-
-  productsSimpleFilter$ = this.productService.productsWithCategory$
-    .pipe(
-      map((products =>
-        products.filter(product=>
-          this.selectedCategoryId ? product.categoryId === this.selectedCategoryId : true)
-        ))
-    )
 
   constructor(private productService: ProductService,
               private productCategoryService: ProductCategoryService) { }
 
   onAdd(): void {
+    this.productService.addProduct()
     console.log('Not yet implemented');
   }
 
   onSelected(categoryId: string): void {
-    console.log(categoryId)
-    this.selectedCategoryId = +categoryId
-    console.log(this.selectedCategoryId)
+    this.categorySelectedSubject.next(+categoryId)
   }
 }
